@@ -1,6 +1,6 @@
 # Mission Briefer – Konzept Fahrdienst-Disposition
 
-Stand: 2026-11-16 · Status: Entwurf v0.2
+Stand: 2026-11-16 · Status: Entwurf v0.3
 
 ## 1. Ziel & Rahmen
 
@@ -197,7 +197,43 @@ Bedarfs- und Konfliktlogik als reine Funktionen in `packages/shared` → gut tes
 - Disponent wird sofort per Push benachrichtigt, Bedarf steht oben im Board
 - Fällt in **Phase 2** (Self-Service)
 
-## 10. Offene Punkte
+| 7 | Datenaufbewahrung | Personenbezogene Daten werden 90 Tage nach Veranstaltungsende automatisch gelöscht bzw. anonymisiert (Job, konfigurierbar) |
 
-1. Aufbewahrungsfrist personenbezogener Daten nach Veranstaltungsende (Vorschlag: Löschung/Anonymisierung nach 90 Tagen)
-2. Sperrfrist für Dienstkorrektur: Default 2 h ok?
+## 10. UX-Leitlinien
+
+**Leitprinzip:** Einfachheit vor Funktionsumfang. Fahrer und Mitfahrer müssen die App **ohne Schulung** bedienen können; Disponenten und Teamleiter arbeiten mit **Massenbearbeitung statt Einzelformularen**.
+
+### 10.1 Fahrer & Mitfahrer (PWA, Mobile-first)
+
+- **Startseite = „Was ist als Nächstes?“**: eine Karte mit nächster Fahrt (Uhrzeit groß, Abholort, Fahrer/Fahrzeug, Anruf-Button) bzw. nächstem Dienst. Darunter chronologische Liste heute/morgen.
+- Max. **3 Tabs**: *Heute* · *Meine Dienste* · *Hilfe/Problem*
+- **Problem-Button** immer erreichbar: „Fahrt verpasst“, „Bin woanders“, „Verspätung“, „Dienst geändert“ – je 1–2 Taps, Ort per GPS vorausgewählt
+- Fahrer: pro Stopp eine Zeile mit großen Buttons *Navigation* / *Angekommen* / *Person fehlt*; Mitfahrerliste mit Anruf-Button
+- Login per Magic-Link, danach dauerhaft angemeldet; keine Passwörter
+- Große Touch-Ziele, hoher Kontrast (draußen, Sonne), funktioniert offline lesend
+- Änderungen werden **hervorgehoben** („Neu: Abholung jetzt 7:15 statt 7:30“) und per Push gemeldet
+
+### 10.2 Teamleiter – Dienste für das Team
+
+- **Team-Dienstplan als Raster:** Zeilen = Teammitglieder, Spalten = Tage
+- **Schnellerfassung:** Tage markieren (Mehrfachauswahl, z. B. Mo–Fr) + Uhrzeit + Einsatzort → „Für ganzes Team übernehmen“
+- Einzelne Personen/Tage per Klick abweichend setzen oder ausnehmen
+- **Vorlagen** („Frühschicht Halle A 7–15 Uhr“) und „Vortag kopieren“
+- Sofortige Rückmeldung: „12 neue Transportbedarfe, 2 Konflikte“
+
+### 10.3 Disponent – Tabellen mit Schnellauswahl
+
+- **Unterbringungs-Matrix:** Zeilen = Personen (filterbar nach Team), Spalten = Nächte; Zellen per Dropdown/Tippen mit Autovervollständigung; Mehrfachauswahl + „für Auswahl setzen“; Zeile/Spalte füllen (wie Excel ziehen); Copy/Paste aus Excel
+- Gleiches Muster für **Personen-Stammdaten** (Start-/Endort, Prio, Teams, Führerschein): editierbare Tabelle statt Formulare, CSV-Import/Export
+- Spreadsheet-Komponente: z. B. AG Grid Community oder Glide Data Grid (MIT)
+
+### 10.4 Übersichten
+
+- **Fahrzeugbelegung:** Zeitleiste (Fahrzeuge × Zeit), Balken = Fahrten, Farbe = Auslastung (frei / teilweise / voll / überbucht), Hover: Fahrer, Mitfahrer, Route; graue Bereiche = nicht verfügbar
+- **Ampel-Dashboard pro Tag:** offene Bedarfe, Konflikte, freie Plätze, Fahrzeuge im Einsatz
+- **Personen-Tagesansicht:** pro Person Dienste + Fahrten + Unterkunft in einer Zeile – zeigt Lücken sofort
+- Druck-/PDF-Ansicht je Fahrzeug und je Tag (Fallback ohne Handy)
+
+## 11. Offene Punkte
+
+1. Sperrfrist für Dienstkorrektur: Default 2 h ok?
