@@ -68,8 +68,8 @@ export const BulkShiftInput = z.object({
   teamId: optId,
   /** Remove existing shifts of these persons on these days first. */
   replace: z.boolean().default(true),
-  /** Client time zone offset in minutes (Date#getTimezoneOffset) to build timestamps. */
-  tzOffsetMin: z.number().int().default(0),
+  /** IANA time zone the HH:mm values refer to. */
+  timeZone: z.string().default('Europe/Berlin'),
 });
 
 export const BulkDeleteShiftsInput = z.object({

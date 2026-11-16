@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  DISPATCHER
+  TEAM_LEAD
+  MEMBER
+}
+
+enum LocationType {
+  LODGING
+  VENUE
+  DEPOT
+  STATION
+  OTHER
+}
+
+enum VehicleType {
+  CAR
+  VAN
+  TRUCK
+  TRAILER
+}
+
+enum TransportKind {
+  VEHICLE
+  WALK
+  PUBLIC
+  TAXI
+  SHUTTLE
+  OTHER
+}
+
+enum TripStatus {
+  PLANNED
+  CONFIRMED
+  ACTIVE
+  DONE
+  CANCELLED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?
+  role         Role     @default(MEMBER)
+  locale       String   @default("de")
+  personId     String?  @unique
+  person       Person?  @relation(fields: [personId], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+}
+
+/// Locations are global and reused across events.
+model Location {
+  id        String       @id @default(cuid())
+  name      String
+  address   String?
+  lat       Float?
+  lng       Float?
+  type      LocationType @default(OTHER)
+  bufferMin Int?
+}
+
+model Event {
+  id                String          @id @default(cuid())
+  name              String
+  startDate         String
+  endDate           String
+  defaultBufferMin  Int             @default(15)
+  walkThresholdMin  Int             @default(15)
+  selfEditLockHours Int             @default(2)
+  participations    Participation[]
+  teams             Team[]
+  shifts            Shift[]
+  lodgings          Lodging[]
+  trips             Trip[]
+  overrides         DemandOverride[]
+  createdAt         DateTime        @default(now())
+}
+
+model Person {
+  id             String          @id @default(cuid())
+  name           String
+  phone          String?
+  email          String?
+  licenses       String[]
+  participations Participation[]
+  user           User?
+}
+
+model Participation {
+  id                String    @id @default(cuid())
+  eventId           String
+  event             Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  personId          String
+  person            Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  prio              Int       @default(5)
+  startLocationId   String?
+  earliestDeparture DateTime?
+  endLocationId     String?
+  latestArrival     DateTime?
+  defaultLodgingId  String?
+
+  @@unique([eventId, personId])
+}
+
+model Team {
+  id      String       @id @default(cuid())
+  eventId String
+  event   Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name    String
+  color   String       @default("#228be6")
+  members TeamMember[]
+}
+
+model TeamMember {
+  teamId   String
+  team     Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  personId String
+  isLead   Boolean @default(false)
+
+  @@id([teamId, personId])
+}
+
+/// One row per person and night. Missing nights fall back to Participation.defaultLodgingId.
+model Lodging {
+  id         String @id @default(cuid())
+  eventId    String
+  event      Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  personId   String
+  night      String
+  locationId String
+
+  @@unique([eventId, personId, night])
+}
+
+/// A shift assigned to one person. Team-wide shifts are created as one row per member (teamId keeps the origin).
+model Shift {
+  id         String   @id @default(cuid())
+  eventId    String
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  personId   String
+  date       String
+  start      DateTime
+  end        DateTime
+  locationId String
+  note       String?
+  teamId     String?
+  updatedAt  DateTime @updatedAt
+
+  @@index([eventId, personId, date])
+}
+
+/// Vehicles are global; availability windows restrict usage.
+model Vehicle {
+  id              String         @id @default(cuid())
+  name            String
+  plate           String?
+  type            VehicleType    @default(CAR)
+  seats           Int
+  licenseRequired String?
+  hasHitch        Boolean        @default(false)
+  depotLocationId String?
+  availabilities  Availability[]
+}
+
+model Availability {
+  id        String   @id @default(cuid())
+  vehicleId String
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  from      DateTime
+  to        DateTime
+}
+
+model Distance {
+  fromId  String
+  toId    String
+  kind    TransportKind
+  minutes Int
+  source  String        @default("manual")
+
+  @@id([fromId, toId, kind])
+}
+
+model Trip {
+  id         String      @id @default(cuid())
+  eventId    String
+  event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  vehicleId  String
+  trailerId  String?
+  driverId   String?
+  status     TripStatus  @default(PLANNED)
+  note       String?
+  stops      Stop[]
+  passengers Passenger[]
+  updatedAt  DateTime    @updatedAt
+}
+
+model Stop {
+  id         String    @id @default(cuid())
+  tripId     String
+  trip       Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  order      Int
+  locationId String
+  arrival    DateTime?
+  departure  DateTime?
+}
+
+model Passenger {
+  id         String  @id @default(cuid())
+  tripId     String
+  trip       Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  personId   String
+  fromStopId String
+  toStopId   String
+  demandKey  String?
+}
+
+model DemandOverride {
+  id        String        @id @default(cuid())
+  eventId   String
+  event     Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  demandKey String
+  kind      TransportKind
+  note      String?
+
+  @@unique([eventId, demandKey])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  eventId   String?
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  data      Json?
+  createdAt DateTime @default(now())
+}

@@ -163,3 +163,11 @@ describe('helpers', () => {
     expect(freeSeats(t, 3, 'a', 'c')).toBe(2);
   });
 });
+
+import { zonedToIso } from '../src';
+describe('zonedToIso', () => {
+  it('handles CET and CEST', () => {
+    expect(zonedToIso('2026-01-10', '08:00', 'Europe/Berlin')).toBe('2026-01-10T07:00:00.000Z');
+    expect(zonedToIso('2026-07-10', '08:00', 'Europe/Berlin')).toBe('2026-07-10T06:00:00.000Z');
+  });
+});
