@@ -1,6 +1,6 @@
 # Mission Briefer – Konzept Fahrdienst-Disposition
 
-Stand: 2026-11-16 · Status: Entwurf v0.3
+Stand: 2026-11-16 · Status: v0.4 – Phase 1 umgesetzt
 
 ## 1. Ziel & Rahmen
 
@@ -197,6 +197,7 @@ Bedarfs- und Konfliktlogik als reine Funktionen in `packages/shared` → gut tes
 - Disponent wird sofort per Push benachrichtigt, Bedarf steht oben im Board
 - Fällt in **Phase 2** (Self-Service)
 
+| 6b | Sperrfrist Selbstkorrektur | 2 h vor Dienstbeginn (konfigurierbar) |
 | 7 | Datenaufbewahrung | Personenbezogene Daten werden 90 Tage nach Veranstaltungsende automatisch gelöscht bzw. anonymisiert (Job, konfigurierbar) |
 
 ## 10. UX-Leitlinien
@@ -234,6 +235,17 @@ Bedarfs- und Konfliktlogik als reine Funktionen in `packages/shared` → gut tes
 - **Personen-Tagesansicht:** pro Person Dienste + Fahrten + Unterkunft in einer Zeile – zeigt Lücken sofort
 - Druck-/PDF-Ansicht je Fahrzeug und je Tag (Fallback ohne Handy)
 
-## 11. Offene Punkte
+## 11. Umsetzungsnotizen Phase 1 (Abweichungen)
 
-1. Sperrfrist für Dienstkorrektur: Default 2 h ok?
+- **Backend: Fastify statt NestJS** – weniger Boilerplate bei dieser Größe; Struktur über Route-Module + `packages/shared`.
+- **Dienst = eine Zeile pro Person** (statt Dienst + Zuweisung). Team-Dienste werden per Massenaktion für alle Mitglieder angelegt, `teamId` merkt die Herkunft. Einfacher für Selbstkorrektur (Phase 2).
+- **Orte, Fahrzeuge, Fahrzeiten sind global** (über Veranstaltungen hinweg wiederverwendbar).
+- **Bündeln**: im MVP manuell – mehrere Bedarfe ankreuzen und gemeinsam auf ein Fahrzeug ziehen; Fahrt-Editor schlägt passende offene Bedarfe vor.
+- **Unterkunft vor dem ersten Dienst** wird nicht angefahren (Anreise geht direkt zum ersten Einsatzort).
+- **Datenlöschung nach 90 Tagen** und Sperrfrist 2 h: Felder vorhanden, Umsetzung mit Phase 2.
+- Vorlagen im Dienstplan werden im Browser gespeichert (pro Gerät).
+- Kein Excel-Fill-Handle (Ziehen zum Füllen); stattdessen Mehrfachauswahl + „für Auswahl setzen“ und Einfügen aus Excel.
+
+## 12. Offene Punkte
+
+- keine

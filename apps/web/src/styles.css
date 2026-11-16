@@ -1,0 +1,127 @@
+body {
+  background: var(--mantine-color-body);
+}
+
+/* ---- Spreadsheet-like matrix ---- */
+.matrix {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  user-select: none;
+}
+.matrix th,
+.matrix td {
+  border-right: 1px solid var(--mantine-color-default-border);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  padding: 4px 8px;
+  white-space: nowrap;
+  height: 32px;
+}
+.matrix thead th {
+  position: sticky;
+  top: 0;
+  background: var(--mantine-color-default);
+  z-index: 2;
+  cursor: pointer;
+}
+.matrix tbody th {
+  position: sticky;
+  left: 0;
+  background: var(--mantine-color-default);
+  text-align: left;
+  font-weight: 500;
+  z-index: 1;
+  cursor: pointer;
+}
+.matrix td {
+  min-width: 110px;
+  cursor: cell;
+}
+.matrix td.sel {
+  background: var(--mantine-color-blue-light) !important;
+  outline: 2px solid var(--mantine-color-blue-filled);
+  outline-offset: -2px;
+}
+.matrix td.muted {
+  color: var(--mantine-color-dimmed);
+  font-style: italic;
+}
+.matrix-wrap {
+  overflow: auto;
+  max-height: calc(100vh - 220px);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 8px;
+}
+
+/* ---- Timeline ---- */
+.timeline {
+  position: relative;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+.tl-row {
+  display: flex;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  min-height: 56px;
+}
+.tl-label {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  width: 170px;
+  flex: none;
+  padding: 6px 8px;
+  background: var(--mantine-color-default);
+  border-right: 1px solid var(--mantine-color-default-border);
+  font-size: 13px;
+}
+.tl-lane {
+  position: relative;
+  flex: none;
+}
+.tl-lane.drop {
+  background: var(--mantine-color-blue-light);
+}
+.tl-hour {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed var(--mantine-color-default-border);
+  font-size: 10px;
+  color: var(--mantine-color-dimmed);
+  padding-left: 2px;
+}
+.tl-unavail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(45deg, transparent, transparent 6px, var(--mantine-color-gray-light) 6px, var(--mantine-color-gray-light) 12px);
+}
+.tl-trip {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 11px;
+  line-height: 1.25;
+  overflow: hidden;
+  cursor: pointer;
+  color: white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.tl-trip.conflict {
+  outline: 2px solid var(--mantine-color-red-filled);
+  outline-offset: 1px;
+}
+
+.demand-card {
+  cursor: grab;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
