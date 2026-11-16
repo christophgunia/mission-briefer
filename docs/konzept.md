@@ -1,6 +1,6 @@
 # Mission Briefer – Konzept Fahrdienst-Disposition
 
-Stand: 2026-11-16 · Status: Entwurf v0.1
+Stand: 2026-11-16 · Status: Entwurf v0.2
 
 ## 1. Ziel & Rahmen
 
@@ -24,6 +24,7 @@ Web-basierte Disposition von Personentransporten (und Material) für Veranstaltu
 |---|---|
 | Admin | Stammdaten, Benutzer, Einstellungen |
 | Disponent | Veranstaltungen, Personen, Dienste, Fahrzeuge, Fahrten, Transportarten planen |
+| Teamleiter | wie Mitfahrer + Dienste der eigenen Teams anlegen/ändern |
 | Fahrer | eigene Fahrten sehen, Status melden, Verspätung melden |
 | Mitfahrer | eigene Fahrten/Dienste sehen, Dienste korrigieren, Fahrt anfragen |
 
@@ -97,7 +98,7 @@ Jeder Bedarf hat Status: **offen / gedeckt / Konflikt**. Änderung eines Dienste
 | Fahrer ohne passende Führerscheinklasse | Fehler |
 | Fahrer hat zeitgleich Dienst / anderer Fahrt | Fehler |
 | Fahrzeug startet nicht dort, wo es zuletzt stand | Warnung |
-| Fahrer-Ruhezeit < 11 h / Lenkzeit (LKW) | Warnung |
+| Fahrer-Ruhezeit < 11 h / Lenkzeit (LKW) | Warnung (nie blockierend) |
 | Wartezeit Mitfahrer > X Min. | Hinweis |
 
 **Prio-Regel:** Bei Engpässen werden höher priorisierte Personen in Vorschlägen zuerst bedient und in der Liste offener Bedarfe oben angezeigt.
@@ -120,7 +121,7 @@ Jeder Bedarf hat Status: **offen / gedeckt / Konflikt**. Änderung eines Dienste
 
 ### Mitfahrer (PWA)
 - Meine Dienste + Meine Fahrten (Abholort, Zeit, Fahrer, Fahrzeug, Kontakt)
-- **Dienstzeit korrigieren** – direkt wirksam; System berechnet Bedarfe neu, betroffene Fahrten → Konflikt, Disponent + Fahrer werden benachrichtigt; Änderung im Audit-Log
+- **Dienstzeit korrigieren** – direkt wirksam (gesperrt ab 2 h vor Beginn, konfigurierbar); System berechnet Bedarfe neu, betroffene Fahrten → Konflikt, Disponent + Fahrer werden benachrichtigt; Änderung im Audit-Log
 - **Fahrt anfragen** – Start, Ziel, gewünschte Ankunft → erscheint als Bedarf im Dispo-Board
 
 ## 6. Live-Funktionen (ohne Zusatzkosten)
@@ -163,7 +164,9 @@ Bedarfs- und Konfliktlogik als reine Funktionen in `packages/shared` → gut tes
 
 **Phase 2 – Self-Service**
 - PWA für Fahrer und Mitfahrer, Magic-Link-Login
-- Dienstkorrektur, Fahrtanfragen
+- Dienstkorrektur, Fahrtanfragen, Positionskorrektur (Fahrt verpasst)
+- Teamleiter-Rolle
+- Mehrsprachigkeit DE/EN (i18n-Grundgerüst bereits in Phase 1)
 - Web Push, Live-Updates
 
 **Phase 3 – Komfort**
@@ -172,11 +175,29 @@ Bedarfs- und Konfliktlogik als reine Funktionen in `packages/shared` → gut tes
 - Optional Standortfreigabe, Lenkzeitprüfung LKW
 - Später ggf. automatische Optimierung (OR-Tools)
 
-## 9. Offene Punkte
+## 9. Entscheidungen
 
-1. Datenschutz: Telefonnummern für Mitfahrer sichtbar? Aufbewahrungsfrist nach Veranstaltung?
-2. Material/Fracht im MVP oder später?
-3. Wer darf Dienste anlegen – nur Disponent oder auch Teamleiter?
-4. Grenzen der Selbstkorrektur (z. B. nur ± 2 h, nicht < 2 h vor Beginn)?
-5. Mehrsprachigkeit (DE/EN) nötig?
-6. Fahrer-Ruhezeiten: harte Regel oder nur Warnung?
+| # | Thema | Entscheidung |
+|---|---|---|
+| 1 | Telefonnummern | Fahrer ↔ Mitfahrer einer gemeinsamen Fahrt gegenseitig sichtbar |
+| 2 | Material/Fracht | später (nach Phase 3) |
+| 3 | Dienste anlegen | Disponent **und Teamleiter** (nur für eigene Teams) → neue Rolle |
+| 4 | Selbstkorrektur Dienste | frei, aber gesperrt ab X h vor Dienstbeginn (konfigurierbar, Default 2 h); danach nur über Disponent |
+| 4b | Positionskorrektur | Mitfahrer kann jederzeit melden „Ich bin jetzt an Ort Y“ (Fahrt verpasst, woanders) → siehe 9.1 |
+| 5 | Sprachen | DE + EN (i18n von Beginn an, Sprache pro Benutzer) |
+| 6 | Ruhezeiten Fahrer | nur Warnung |
+
+**Rolle Teamleiter:** Rechte wie Mitfahrer + Dienste für eigene Teams anlegen/ändern. Änderungen lösen dieselbe Bedarfsneuberechnung aus wie beim Disponenten.
+
+### 9.1 Positionskorrektur / Fahrt verpasst
+
+- Mitfahrer (PWA): Button „Fahrt verpasst / anderer Standort“ → Ort wählen (Liste oder aktueller GPS-Standort → nächster bekannter Ort) + Zeitpunkt
+- Alternativ Fahrer meldet „Person nicht erschienen“
+- Folge: Beförderung wird als *nicht erfolgt* markiert; System erzeugt neuen **Ad-hoc-Bedarf** (aktueller Ort → nächster Dienstort bzw. Unterkunft) mit Status *dringend*
+- Disponent wird sofort per Push benachrichtigt, Bedarf steht oben im Board
+- Fällt in **Phase 2** (Self-Service)
+
+## 10. Offene Punkte
+
+1. Aufbewahrungsfrist personenbezogener Daten nach Veranstaltungsende (Vorschlag: Löschung/Anonymisierung nach 90 Tagen)
+2. Sperrfrist für Dienstkorrektur: Default 2 h ok?
